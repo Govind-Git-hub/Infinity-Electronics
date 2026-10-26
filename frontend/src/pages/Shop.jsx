@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Loader2,
   PackageSearch,
   Search,
   X,
   SlidersHorizontal,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -16,6 +14,10 @@ import ProductCard from '../components/ProductCard';
 const Shop = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const loadingMoreRef = useRef(false);
 
   // Search
   const [search, setSearch] = useState('');
@@ -32,7 +34,7 @@ const Shop = () => {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
+  const limit = 15;
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -66,7 +68,7 @@ const Shop = () => {
     );
   };
 
-  // Fetch Products
+  // Fetch Products: replace on page 1, append on later pages.
   const fetchProducts = async (
     searchValue = '',
     categoryValue = '',
@@ -74,11 +76,19 @@ const Shop = () => {
     sortValue = 'createdAt',
     orderValue = 'desc',
     pageValue = 1,
-    limitValue = 12
+    limitValue = 15,
+    requestId
   ) => {
-    try {
+    if (pageValue === 1) {
       setLoading(true);
+      setLoadingMore(false);
+      loadingMoreRef.current = false;
+    } else {
+      setLoadingMore(true);
+      loadingMoreRef.current = true;
+    }
 
+    try {
       const response = await api.get('/products', {
         params: {
           page: pageValue,
@@ -91,30 +101,45 @@ const Shop = () => {
         },
       });
 
+      // Ignore responses from an outdated search/filter/page request.
+      if (requestId !== requestIdRef.current) return;
+
       if (response.data.success) {
-        setProducts(response.data?.data || []);
+        const newProducts = response.data?.data || [];
+
+        if (pageValue === 1) {
+          setProducts(newProducts);
+        } else {
+          setProducts((previousProducts) => {
+            const existingIds = new Set(previousProducts.map((product) => product._id));
+            return [
+              ...previousProducts,
+              ...newProducts.filter((product) => !existingIds.has(product._id)),
+            ];
+          });
+        }
 
         setPagination(
           response.data?.pagination || {
             currentPage: pageValue,
             totalPages: 1,
-            totalProducts: response.data?.data?.length || 0,
+            totalProducts: newProducts.length,
           }
         );
       } else {
-        toast.error(
-          response.data.message || 'Failed to load products'
-        );
+        toast.error(response.data.message || 'Failed to load products');
       }
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       console.error('Fetch products error:', error);
-
-      toast.error(
-        error.response?.data?.message ||
-        'Unable to load products'
-      );
+      if (pageValue > 1) setPage(pageValue - 1);
+      toast.error(error.response?.data?.message || 'Unable to load products');
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+        setLoadingMore(false);
+        loadingMoreRef.current = false;
+      }
     }
   };
 
@@ -160,8 +185,9 @@ const Shop = () => {
     fetchBrands();
   }, []);
 
-  // Search + Filters + Sorting + Pagination
+  // Search + filters + sorting + infinite pagination.
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
     const timer = setTimeout(() => {
       fetchProducts(
         search.trim(),
@@ -170,17 +196,52 @@ const Shop = () => {
         sort,
         order,
         page,
-        limit
+        limit,
+        requestId
       );
     }, 400);
 
-    return () => clearTimeout(timer);
-  }, [search, category, brand, sort, order, page, limit,]);
+    return () => {
+      clearTimeout(timer);
+      requestIdRef.current += 1;
+    };
+  }, [search, category, brand, sort, order, page]);
 
-  // Reset page when search/filter/sort changes
+  // Reset the list when search, filters, or sorting changes.
   useEffect(() => {
     setPage(1);
-  }, [search, category, brand, sort, order, limit,]);
+    setProducts([]);
+    setLoading(true);
+    setLoadingMore(false);
+    loadingMoreRef.current = false;
+  }, [search, category, brand, sort, order]);
+
+  // Load the next page when the sentinel near the bottom enters the viewport.
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const hasNextPage = pagination.currentPage < pagination.totalPages;
+        if (
+          entry.isIntersecting &&
+          !loading &&
+          !loadingMoreRef.current &&
+          page === pagination.currentPage &&
+          hasNextPage
+        ) {
+          loadingMoreRef.current = true;
+          setLoadingMore(true);
+          setPage((currentPageValue) => currentPageValue + 1);
+        }
+      },
+      { root: null, rootMargin: '400px 0px', threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loading, loadingMore, page, pagination.currentPage, pagination.totalPages]);
 
   useEffect(() => {
     if (isFilterOpen) {
@@ -231,12 +292,6 @@ const Shop = () => {
     setSearchParams({});
   };
 
-  // Change page size
-  const handleLimitChange = (e) => {
-    setLimit(Number(e.target.value));
-    setPage(1);
-  };
-
   const hasFilters =
     search.trim() ||
     category ||
@@ -244,7 +299,7 @@ const Shop = () => {
     sort !== 'createdAt' ||
     order !== 'desc';
 
-  const currentPage = pagination?.currentPage || page;
+  const currentPage = pagination?.currentPage || 1;
   const totalPages = pagination?.totalPages || 1;
   const totalProducts = pagination?.totalProducts || 0;
 
@@ -695,92 +750,20 @@ const Shop = () => {
             ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex flex-col gap-4 border-t border-gray-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            {/* Infinite-scroll sentinel and status */}
+            <div ref={sentinelRef} aria-hidden="true" className="h-2 w-full" />
 
-                {/* Page Size */}
-                <div className="flex items-center gap-2">
-
-                  <label
-                    htmlFor="limit"
-                    className="text-sm text-gray-500"
-                  >
-                    Products per page
-                  </label>
-
-                  <select
-                    id="limit"
-                    value={limit}
-                    onChange={handleLimitChange}
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-[#111827] outline-none transition focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20"
-                  >
-                    <option value="8">8</option>
-                    <option value="12">12</option>
-                    <option value="24">24</option>
-                    <option value="48">48</option>
-                  </select>
-
-                </div>
-
-                {/* Pagination Buttons */}
-                <div className="flex items-center gap-2">
-
-                  <button
-                    type="button"
-                    disabled={currentPage <= 1}
-                    onClick={() => setPage((prev) => prev - 1)}
-                    className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-[#6366F1] hover:text-[#6366F1] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <ChevronLeft size={17} />
-                    Previous
-                  </button>
-
-                  {/* Page Numbers */}
-                  <div className="hidden items-center gap-1 sm:flex">
-
-                    {Array.from(
-                      { length: totalPages, },
-                      (_, index) => index + 1
-                    ).map((pageNumber) => (
-                      <button
-                        key={pageNumber}
-                        type="button"
-                        onClick={() =>
-                          setPage(
-                            pageNumber
-                          )
-                        }
-                        className={`h-9 min-w-9 rounded-lg px-3 text-sm font-medium transition ${currentPage === pageNumber
-                          ? 'bg-[#6366F1] text-white shadow-sm'
-                          : 'border border-gray-300 bg-white text-gray-700 hover:border-[#6366F1] hover:text-[#6366F1]'
-                          }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    ))}
-
-                  </div>
-
-                  {/* Mobile Page Indicator */}
-                  <span className="text-sm font-medium text-gray-600 sm:hidden">
-                    Page {currentPage} of{' '}
-                    {totalPages}
-                  </span>
-
-                  <button
-                    type="button"
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setPage((prev) => prev + 1)}
-                    className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-[#6366F1] hover:text-[#6366F1] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Next
-                    <ChevronRight size={17} />
-                  </button>
-
-                </div>
-
+            {loadingMore && (
+              <div className="flex items-center justify-center gap-2 py-8 text-sm font-medium text-gray-500" role="status" aria-live="polite">
+                <Loader2 size={20} className="animate-spin text-[#6366F1]" />
+                Loading more products...
               </div>
+            )}
+
+            {!loading && !loadingMore && currentPage >= totalPages && products.length > 0 && (
+              <p className="py-8 text-center text-sm text-gray-500">
+                You've seen all products.
+              </p>
             )}
           </>
         )}

@@ -1,6 +1,7 @@
 
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import heroImage from '../../assets/hero-electronics.png';
 
 const HeroSection = () => {
     return (
@@ -47,7 +48,7 @@ const HeroSection = () => {
                     <div className="absolute inset-8 rounded-full bg-indigo-200/40 blur-3xl" />
 
                     <img
-                        src="https://placehold.co/900x650/eeedff/4f46e5?text=Your+Electronics+Banner"
+                        src={heroImage}
                         alt="Explore electronics and modern gadgets"
                         className="relative mx-auto aspect-[5/4] w-full max-w-xl rounded-3xl object-cover"
                     />

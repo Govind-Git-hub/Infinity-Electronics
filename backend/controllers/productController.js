@@ -7,7 +7,7 @@ const getProducts = async (req, res) => {
     try {
         const {
             page = 1,
-            limit = 10,
+            limit = 15,
             search,
             category,
             brand,
@@ -16,8 +16,8 @@ const getProducts = async (req, res) => {
             isFeatured
         } = req.query;
 
-        const currentPage = Math.max(parseInt(page) || 1, 1);
-        const perPage = Math.max(parseInt(limit) || 10, 1);
+        const currentPage = Math.max(parseInt(page, 10) || 1, 1);
+        const perPage = Math.min(Math.max(parseInt(limit, 10) || 15, 1), 100);
         const skip = (currentPage - 1) * perPage;
 
         const filter = {};
@@ -74,7 +74,7 @@ const getProducts = async (req, res) => {
             'stock',
             'createdAt',
             'updatedAt'
-        ];
+        ];  
 
         const sortField = allowedSortFields.includes(sort) ? sort : 'createdAt';
         const sortOrder = order.toLowerCase() === 'asc' ? 1 : -1;
@@ -83,7 +83,7 @@ const getProducts = async (req, res) => {
             Product.find(filter)
                 .populate('category', 'name slug')
                 .populate('brand', 'name slug logo')
-                .sort({ [sortField]: sortOrder })
+                .sort({ [sortField]: sortOrder, _id: sortOrder })
                 .skip(skip)
                 .limit(perPage),
 

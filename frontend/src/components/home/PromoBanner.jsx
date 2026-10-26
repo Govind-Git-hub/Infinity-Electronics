@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap } from 'lucide-react';
+import BannerImage from '../../assets/promo-tech.png';
 
 const PromoBanner = () => {
     return (
@@ -40,7 +41,7 @@ const PromoBanner = () => {
                         {/* Banner Image */}
                         <div className="flex items-center justify-center">
                             <img
-                                src="https://placehold.co/700x500/312e81/ffffff?text=Discover+New+Tech"
+                                src={BannerImage}
                                 alt="Discover new electronics and gadgets"
                                 loading="lazy"
                                 className="w-full max-w-md rounded-2xl object-contain drop-shadow-2xl"
