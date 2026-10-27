@@ -56,6 +56,10 @@ npm run dev
 ```bash
 docker compose up --build
 
+# App: http://localhost:5173
+# API: http://localhost:5000
+# Mongo: localhost:27017
+
 # StopBash
 docker compose down
 
