@@ -25,6 +25,7 @@ import Brands from './pages/admin/Brands';
 import BrandForm from './pages/admin/BrandForm';
 import Orders from './pages/admin/Orders';
 import OrderDetail from './pages/admin/OrderDetail';
+import Wishlist from './pages/Wishlist';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-success/:id" element={<OrderSuccess />} />
         <Route path="/orders/:id" element={<OrderDetails />} />

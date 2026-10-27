@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Search,
+    Heart,
     ShoppingCart,
     User,
     Menu,
@@ -11,6 +12,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
@@ -18,6 +20,8 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [search, setSearch] = useState('');
     const { cartCount } = useCart();
+    const { wishlist } = useWishlist();
+    const wishlistCount = wishlist.length;
 
     const isAdmin = isAuthenticated && user?.role === 'admin';
 
@@ -99,6 +103,23 @@ const Navbar = () => {
 
                 {/* Right Actions */}
                 <div className="hidden items-center gap-4 md:flex">
+
+                    {/* Wishlist - authenticated users only */}
+                    {isAuthenticated && (
+                        <Link
+                            to="/wishlist"
+                            className="relative rounded-lg p-2 text-gray-600 transition hover:bg-gray-100 hover:text-red-500"
+                            aria-label="Wishlist"
+                            title="Wishlist"
+                        >
+                            <Heart size={22} />
+                            {wishlistCount > 0 && (
+                                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                                </span>
+                            )}
+                        </Link>
+                    )}
 
                     {/* Cart */}
                     <Link
@@ -217,6 +238,22 @@ const Navbar = () => {
                         >
                             Shop
                         </Link>
+
+                        {isAuthenticated && (
+                            <Link
+                                to="/wishlist"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="flex items-center gap-2 rounded-lg px-3 py-2 font-medium text-[#111827] hover:bg-gray-100"
+                            >
+                                <Heart size={19} />
+                                Wishlist
+                                {wishlistCount > 0 && (
+                                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                                        {wishlistCount > 99 ? '99+' : wishlistCount}
+                                    </span>
+                                )}
+                            </Link>
+                        )}
 
                         <Link
                             to="/cart"

@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema(
         role: { type: String, enum: ['user', 'admin'], default: 'user', },
         avatar: { type: String, default: null, },
         addresses: { type: [addressSchema], default: [], },
+        wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     },
     { timestamps: true, }
 );
