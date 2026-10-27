@@ -47,4 +47,16 @@ npm run dev
 # npm run server  Backend only
 # npm run client  Frontend only
 
+## Docker
+
+### Requirements
+- Docker Desktop
+
+### Run
+```bash
+docker compose up --build
+
+# StopBash
+docker compose down
+
 Adjust ports if yours differ.
