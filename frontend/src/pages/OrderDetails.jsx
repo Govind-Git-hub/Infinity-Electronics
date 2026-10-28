@@ -1,3 +1,4 @@
+import OrderInvoice from '../components/OrderInvoice';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -10,6 +11,7 @@ import {
     LoaderCircle,
     MapPin,
     Package,
+    Printer,
     ShoppingBag,
     Truck,
     WalletCards,
@@ -883,6 +885,15 @@ const OrderDetails = () => {
                                 <p className="mt-1 text-sm leading-5 text-gray-500">View your other orders or continue shopping.</p>
                             </div>
                             <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
+                                {order.isPaid && (
+                                    <button
+                                        type="button"
+                                        onClick={() => window.print()}
+                                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#6366F1] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#4F46E5] sm:w-auto"
+                                    >
+                                        <Printer size={17} /> Print Invoice
+                                    </button>
+                                )}
                                 <Link
                                     to="/profile?tab=orders"
                                     className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-[#6366F1] hover:bg-indigo-50 hover:text-[#6366F1] sm:w-auto"
@@ -899,9 +910,10 @@ const OrderDetails = () => {
                         </div>
                     </div>
 
+                    {/* Print-only invoice: hidden on screen, visible in browser print preview */}
+                    <OrderInvoice order={order} />
+
                 </div>
-
-
 
             </div>
         </div>

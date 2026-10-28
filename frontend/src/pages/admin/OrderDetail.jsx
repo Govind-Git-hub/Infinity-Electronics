@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft, LoaderCircle, Package, MapPin, UserRound, CreditCard,
-    RefreshCw, CheckCircle2, Clock3, Truck, Ban
+    RefreshCw, CheckCircle2, Clock3, Truck, Ban, Printer
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../services/api';
+import OrderInvoice from '../../components/OrderInvoice';
 
 const STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -162,14 +163,29 @@ const OrderDetail = () => {
                         </p>
                     </div>
                 </div>
-                <button
-                    type="button"
-                    onClick={fetchOrder}
-                    disabled={loading || saving}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                    <RefreshCw size={16} /> Refresh
-                </button>
+
+                <div className="flex flex-wrap items-center gap-2">
+                    {order.isPaid && (
+                        <button
+                            type="button"
+                            onClick={() => window.print()}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6366F1] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4F46E5]"
+                        >
+                            <Printer size={16} />
+                            Print Invoice
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={fetchOrder}
+                        disabled={loading || saving}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                        <RefreshCw size={16} />
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -365,6 +381,9 @@ const OrderDetail = () => {
                     </div>
                 </div>
             )}
+
+            <OrderInvoice order={order} />
+
         </div>
     );
 };

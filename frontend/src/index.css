@@ -19,3 +19,82 @@
 .product-main-swiper .swiper-button-disabled {
     opacity: 0;
 }
+
+
+
+
+.invoice-print {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+        color: #000 !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Hide the application, not the invoice portal. */
+    body>#root {
+        display: none !important;
+    }
+
+    body>.invoice-print {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        visibility: visible !important;
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+    }
+
+    body>.invoice-print * {
+        visibility: visible !important;
+    }
+
+    .invoice-print .overflow-x-auto {
+        overflow: visible !important;
+    }
+
+    .invoice-print table {
+        width: 100% !important;
+        min-width: 0 !important;
+        border-collapse: collapse;
+    }
+
+    .invoice-print tr,
+    .invoice-print img {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .invoice-print thead {
+        display: table-header-group;
+    }
+
+    .invoice-print tfoot {
+        display: table-footer-group;
+    }
+}
