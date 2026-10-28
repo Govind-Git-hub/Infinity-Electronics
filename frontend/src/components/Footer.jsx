@@ -66,7 +66,7 @@ const Footer = () => {
                                 My Orders
                             </a>
 
-                            <a href="/contact" className="transition hover:text-[#6366F1]">
+                            <a href="/help" className="transition hover:text-[#6366F1]">
                                 Help & Support
                             </a>
                         </div>

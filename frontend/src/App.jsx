@@ -26,6 +26,9 @@ import BrandForm from './pages/admin/BrandForm';
 import Orders from './pages/admin/Orders';
 import OrderDetail from './pages/admin/OrderDetail';
 import Wishlist from './pages/Wishlist';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Help from './pages/Help';
 
 function App() {
   return (
@@ -44,6 +47,10 @@ function App() {
         <Route path="/order-success/:id" element={<OrderSuccess />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
         <Route path="/profile" element={<Profile />} />
+
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/help" element={<Help />} />
       </Route>
 
       {/* Admin Routes */}
