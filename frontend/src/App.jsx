@@ -26,6 +26,7 @@ import BrandForm from './pages/admin/BrandForm';
 import Orders from './pages/admin/Orders';
 import OrderDetail from './pages/admin/OrderDetail';
 import Wishlist from './pages/Wishlist';
+import Reviews from './pages/admin/Reviews';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Help from './pages/Help';
@@ -70,6 +71,8 @@ function App() {
 
         <Route path="orders" element={<Orders />} />
         <Route path="orders/:id" element={<OrderDetail />} />
+
+        <Route path="reviews" element={<Reviews />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

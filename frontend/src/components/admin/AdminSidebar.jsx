@@ -7,6 +7,7 @@ import {
     Award,
     ClipboardList,
     X,
+    MessageSquare
 } from 'lucide-react';
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
     { name: 'Categories', path: '/admin/categories', icon: Tags },
     { name: 'Brands', path: '/admin/brands', icon: Award },
     { name: 'Orders', path: '/admin/orders', icon: ClipboardList },
+    { name: 'Reviews', path: '/admin/reviews', icon: MessageSquare, }
 ];
 
 const AdminSidebar = ({ open, onClose }) => {
