@@ -1,7 +1,19 @@
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 const uploadToCloudinary = require('../utils/uploadToCloudinary');
 const cloudinary = require('../config/cloudinary');
+
+// Preserve Cloudinary images that are still referenced by historical order items.
+const isImageUsedInOrders = async (imageUrl) => {
+    try {
+        return Boolean(await Order.exists({ 'orderItems.image': imageUrl }));
+    } catch (error) {
+        // If the order-reference check fails, keep the image rather than risk breaking an invoice.
+        console.error('Could not verify order image usage; preserving image:', error.message);
+        return true;
+    }
+};
 
 const getProducts = async (req, res) => {
     try {
@@ -564,8 +576,13 @@ const updateProduct = async (req, res) => {
             (image) => !retainedImages.includes(image)
         );
 
-        // Delete removed images from Cloudinary after the DB save succeeds.
+        // Delete removed images only when no historical order item references them.
         for (const imageUrl of removedImages) {
+            if (await isImageUsedInOrders(imageUrl)) {
+                console.log('Preserving image referenced by an order:', imageUrl);
+                continue;
+            }
+
             const publicId = getCloudinaryPublicId(imageUrl);
 
             if (!publicId) {
@@ -640,8 +657,13 @@ const deleteProduct = async (req, res) => {
         // Delete the product from the database first.
         await product.deleteOne();
 
-        // Delete product images from Cloudinary.
+        // Delete product images only when no historical order item references them.
         for (const imageUrl of productImages) {
+            if (await isImageUsedInOrders(imageUrl)) {
+                console.log('Preserving image referenced by an order:', imageUrl);
+                continue;
+            }
+
             const publicId = getCloudinaryPublicId(imageUrl);
 
             if (!publicId) {
