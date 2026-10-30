@@ -16,11 +16,12 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      # Inside Docker, Mongo is the service name "mongo", not localhost
-      MONGO_URI: mongodb://mongo:27017/infinity-electronics
+      NODE_ENV: development
       PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/infinity-electronics
+      # Optional: lock CORS even in compose if you want
+      # FRONTEND_URL: http://localhost:5173
     volumes:
-      # Live code reload: your PC folder → container
       - ./backend:/app
       - /app/node_modules
     depends_on:
@@ -33,8 +34,8 @@ services:
     ports:
       - "5173:5173"
     environment:
-      # Browser runs on your PC, so API is still localhost:5000
-      VITE_API_URL: http://localhost:5000/api
+      VITE_API_URL: /api
+      VITE_PROXY_TARGET: http://backend:5000
     volumes:
       - ./frontend:/app
       - /app/node_modules
